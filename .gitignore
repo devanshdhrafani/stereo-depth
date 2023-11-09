@@ -1,0 +1,8 @@
+*.mp4
+*.avi
+*.bag
+*.pyc
+**/__pychache__/**
+*.yaml
+*.jpg
+*.png
