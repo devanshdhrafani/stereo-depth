@@ -36,8 +36,8 @@ class ROSBagImageExtractor:
             self.output_dir, left_or_right, f"{image_timestamp}.png"
         )
         # check if image already exists
-        if os.path.exists(image_filename):
-            print(f"Image already exists: {image_filename}")
+        # if os.path.exists(image_filename):
+        #     print(f"Image already exists: {image_filename}")
         cv2.imwrite(image_filename, img)
 
     def extract_images(self, topics=["/thermal_left/image", "/thermal_right/image"]):
@@ -56,10 +56,8 @@ class ROSBagImageExtractor:
 
 
 if __name__ == "__main__":
-    bag_file = (
-        "/media/devansh/storage/wildfire/2023-11-07-Thermal_Test/thermal_2023-11-07.bag"
-    )
-    output_dir = "./2023-11-07-Thermal_Test/images_raw"
+    bag_file = "/media/devansh/T7 Shield/wildfire_thermal/1.bags/thermal_2023-11-07-throughTrees_trial2.bag"
+    output_dir = "/media/devansh/T7 Shield/wildfire_thermal/2.images/thermal_2023-11-07-throughTrees_trial2/images_raw"
 
     image_extractor = ROSBagImageExtractor(bag_file, output_dir, raw=True)
     image_extractor.create_output_directory()
