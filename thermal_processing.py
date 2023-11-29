@@ -13,16 +13,6 @@ class ThermalImageProcessor:
         img_16 = cv2.imread(self.input_path, cv2.IMREAD_UNCHANGED)
         img_8_scaled = (img_16 / 255).astype(np.uint8)
 
-        cv2.imwrite("img_8_scaled.png", img_8_scaled)
-
-        # # Plot the histogram of the 16-bit thermal image
-        # plt.hist(img_16.flatten(), bins=100)
-        # # label the axes
-        # plt.xlabel("Pixel Values")
-        # plt.ylabel("Frequency")
-        # plt.title("Histogram of 16-bit Thermal Image")
-        # plt.show()
-
         # Create a figure with two subplots
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 8))
 
@@ -52,8 +42,6 @@ class ThermalImageProcessor:
             (img_16[mask] - lower_bound) / (upper_bound - lower_bound) * 255
         ).astype(np.uint8)
 
-        cv2.imwrite("histogram_bound_img.png", histogram_bound_img)
-
         # Create a figure with 4 2x2 subplots
         fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(13, 10))
 
@@ -65,17 +53,9 @@ class ThermalImageProcessor:
         ax2.imshow(cv2.cvtColor(histogram_bound_img, cv2.COLOR_GRAY2RGB))
         ax2.set_title("Histogram Enhanced Image")
 
-        # Remove the space between subplots
-        # plt.subplots_adjust(wspace=0.3)
-
-        # # Save the figure
-        # plt.savefig("histogram_enhanced.png")
-
         minmax_image = cv2.normalize(img_16, None, 0, 255, cv2.NORM_MINMAX).astype(
             np.uint8
         )
-
-        cv2.imwrite("minmax_image.png", minmax_image)
 
         ax3.imshow(cv2.cvtColor(minmax_image, cv2.COLOR_GRAY2RGB))
         ax3.set_title("Min-Max Normalized Image")
@@ -95,8 +75,6 @@ class ThermalImageProcessor:
 
         # tight
         fig.tight_layout()
-
-        # remove vertical and horizontal spacing between subplots
         plt.subplots_adjust(wspace=0.0, hspace=0.2)
 
         plt.savefig(output_path)
