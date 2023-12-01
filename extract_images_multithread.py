@@ -29,7 +29,7 @@ class ROSBagImageExtractor:
             img = cv_image
         if self.hist_equalize:
             img = cv2.equalizeHist(img)
-        image_timestamp = int(t.to_nsec() / 1e3)
+        image_timestamp = int(t.to_nsec() / 1e6)
         if not os.path.exists(os.path.join(self.output_dir, left_or_right)):
             os.makedirs(os.path.join(self.output_dir, left_or_right), exist_ok=True)
         image_filename = os.path.join(
@@ -56,8 +56,8 @@ class ROSBagImageExtractor:
 
 
 if __name__ == "__main__":
-    bag_file = "/media/devansh/T7 Shield/wildfire_thermal/1.bags/thermal_2023-11-07-throughTrees_trial2.bag"
-    output_dir = "/media/devansh/T7 Shield/wildfire_thermal/2.images/thermal_2023-11-07-throughTrees_trial2/images_raw"
+    bag_file = "/media/devansh/T7 Shield/wildfire_thermal/1.bags/thermal_2023-11-07-throughTrees_trial1/thermal_2023-11-07-throughTrees_trial1.bag"
+    output_dir = "/media/devansh/T7 Shield/wildfire_thermal/2.images/thermal_2023-11-07-throughTrees_trial1/images_raw"
 
     image_extractor = ROSBagImageExtractor(bag_file, output_dir, raw=True)
     image_extractor.create_output_directory()
