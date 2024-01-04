@@ -329,6 +329,26 @@ def video_inference(stereo_depth, capture, method, output_path="output.avi"):
         out.write(result)
 
 
+def single_inference2(
+    stereo_depth, capture, method, frame_idx, output_path="output.avi"
+):
+    frame_count = int(capture.get(cv2.CAP_PROP_FRAME_COUNT))
+    capture.set(cv2.CAP_PROP_POS_FRAMES, frame_idx)
+
+    ret, frame = capture.read()
+    # top, thermal = np.split(frame, 2, axis=0)
+    left, right = np.split(frame, 2, axis=1)
+    # print(left.shape, right.shape)
+    disparity_image, confidence_img, frame_rectified = stereo_depth.get_disparity(
+        left, right, method=method
+    )
+    # result = stitch_result(frame, disparity_image, stereo_depth)
+    result = stich_result_with_confidence(
+        frame_rectified, disparity_image, confidence_img, stereo_depth
+    )
+    return result
+
+
 def vertical_interpolation(image, blank_color=[0, 0, 0]):
     # Load the image
     height, width, channels = image.shape
@@ -366,7 +386,7 @@ def main():
     # args
     left_camera_yaml = "./thermal_left.yaml"
     right_camera_yaml = "./thermal_right.yaml"
-    video_file = "/home/devansh/airlab/depth_estimation/vpi_scripts/2023-11-07-Thermal_Test_video.avi"
+    video_file = "/media/devansh/T7 Shield/wildfire_thermal/3.synced_videos/2023-11-07-throughTrees_trial2_minmax.avi"
 
     # load calibration data
     left_camera_properties = CameraPropertiesLoader(left_camera_yaml)
@@ -379,12 +399,18 @@ def main():
     # load video
     capture = cv2.VideoCapture(video_file)
 
-    video_inference(
-        stereo_depth,
-        capture,
-        method="vpi",
-        output_path="2023-11-07-Thermal_Test_result_rgb_conf500.avi",
-    )
+    # video_inference(
+    #     stereo_depth,
+    #     capture,
+    #     method="vpi",
+    #     output_path="2023-11-07-throughTrees_trial2_histogram.avi",
+    # )
+
+    result = single_inference2(stereo_depth, capture, method="vpi", frame_idx=600)
+    cv2.imshow("combined", result)
+    cv2.waitKey(0)
+
+    cv2.imwrite("throughTrees_trial2_minmax.png", result)
 
     # frame, disparity = single_inference(
     #     stereo_depth, capture, method="vpi", frame_idx=1137
