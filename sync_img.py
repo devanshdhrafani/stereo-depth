@@ -42,10 +42,70 @@ class ImageSync:
 
         return synced_images
 
+    def process_image(self, img_16, type=None, outlier_removal=True):
+        if outlier_removal:
+            # upper bound is 4 std above mean
+            img_16_cleaned = img_16.copy()
+            # mean = np.mean(img_16_cleaned)
+            # std = np.std(img_16_cleaned)
+            # upper_threshold = mean + 4 * std
+            # lower_threshold = mean - 4 * std
+
+            # print(f"Upper threshold: {upper_threshold}")
+            # print(f"Lower threshold: {lower_threshold}")
+
+            upper_threshold = 27000
+            lower_threshold = 20000
+
+            img_16_cleaned[img_16_cleaned > upper_threshold] = upper_threshold
+            img_16_cleaned[img_16_cleaned < lower_threshold] = lower_threshold
+
+            img_16 = img_16_cleaned
+
+        if type == "histogram":
+            lower_bound = 21000
+            upper_bound = 24000
+            # find the 99th percentile
+            # lower_bound = np.percentile(img_16, 1)
+            # upper_bound = np.max(img_16)
+
+            # print(f"Lower bound: {lower_bound}")
+            # print(f"Upper bound: {upper_bound}")
+
+            histogram_bound_img = np.zeros_like(img_16, dtype=np.uint8)
+            mask = (img_16 >= lower_bound) & (img_16 <= upper_bound)
+            histogram_bound_img[mask] = (
+                (img_16[mask] - lower_bound) / (upper_bound - lower_bound) * 255
+            ).astype(np.uint8)
+
+            histogram_bound_img = cv2.normalize(
+                histogram_bound_img, None, 0, 255, cv2.NORM_MINMAX
+            ).astype(np.uint8)
+
+            histogram_bound_img = cv2.cvtColor(histogram_bound_img, cv2.COLOR_GRAY2RGB)
+            return histogram_bound_img
+        elif type == "minmax":
+            minmax_image = cv2.normalize(img_16, None, 0, 255, cv2.NORM_MINMAX).astype(
+                np.uint8
+            )
+            minmax_image = cv2.cvtColor(minmax_image, cv2.COLOR_GRAY2RGB)
+            return minmax_image
+        else:
+            img_8 = (img_16 / 255).astype(np.uint8)
+            img_8 = cv2.cvtColor(img_8, cv2.COLOR_GRAY2RGB)
+            return img_8
+
     def create_video(self):
         synced_images = self.sync_images()
+
+        # take the first image to get the shape
+        left_path = os.path.join(self.left_folder, synced_images[0][0])
+        left_image = cv2.imread(left_path, cv2.IMREAD_UNCHANGED)
+
+        video_shape = (left_image.shape[1] * 2, left_image.shape[0])
+
         video_writer = cv2.VideoWriter(
-            self.output_video, cv2.VideoWriter_fourcc(*"MJPG"), 30, (1280, 512)
+            self.output_video, cv2.VideoWriter_fourcc(*"MJPG"), 30, video_shape
         )
 
         for left_image, right_image in tqdm.tqdm(
@@ -53,8 +113,16 @@ class ImageSync:
         ):
             left_path = os.path.join(self.left_folder, left_image)
             right_path = os.path.join(self.right_folder, right_image)
-            left_image = cv2.imread(left_path)
-            right_image = cv2.imread(right_path)
+            left_image = cv2.imread(left_path, cv2.IMREAD_UNCHANGED)
+            right_image = cv2.imread(right_path, cv2.IMREAD_UNCHANGED)
+
+            left_image = self.process_image(
+                left_image, type="histogram", outlier_removal=True
+            )
+            right_image = self.process_image(
+                right_image, type="histogram", outlier_removal=True
+            )
+
             try:
                 side_by_side = cv2.hconcat([left_image, right_image])
             except Exception as e:
@@ -68,9 +136,9 @@ class ImageSync:
 
 
 if __name__ == "__main__":
-    left_folder = "2023-11-07-Thermal_Handheld/images/thermal_left"
-    right_folder = "2023-11-07-Thermal_Handheld/images/thermal_right"
-    output_video = "2023-11-07-Thermal_Handheld_video.avi"
+    left_folder = "/media/devansh/T7 Shield/wildfire_thermal/2.images/thermal_2023-11-07-throughTrees_trial2/images_raw/thermal_left"
+    right_folder = "/media/devansh/T7 Shield/wildfire_thermal/2.images/thermal_2023-11-07-throughTrees_trial2/images_raw/thermal_right"
+    output_video = "/media/devansh/T7 Shield/wildfire_thermal/3.synced_videos/2023-11-07-throughTrees_trial2_histogram.avi"
     tolerance = 1000  # ms
 
     image_sync = ImageSync(left_folder, right_folder, output_video, tolerance)
