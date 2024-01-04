@@ -134,6 +134,38 @@ class ImageSync:
 
         video_writer.release()
 
+    def create_images(self):
+        synced_images = self.sync_images()
+        print(f"Found {len(synced_images)} synced images")
+
+        # move two up from the left folder and create a new folder called images_raw_synced
+        output_path = os.path.join(self.left_folder, "../../images_raw_synced")
+        if not os.path.exists(output_path):
+            os.makedirs(output_path)
+        print(f"Saving images to: {output_path}")
+
+        frame_count = 0
+        for left_image, right_image in tqdm.tqdm(
+            synced_images, total=len(synced_images)
+        ):
+            left_path = os.path.join(self.left_folder, left_image)
+            right_path = os.path.join(self.right_folder, right_image)
+            left_image = cv2.imread(left_path, cv2.IMREAD_UNCHANGED)
+            right_image = cv2.imread(right_path, cv2.IMREAD_UNCHANGED)
+
+            try:
+                side_by_side = cv2.hconcat([left_image, right_image])
+            except Exception as e:
+                print(
+                    f"Encountered error: {e} at {left_image} and {right_image}. Skipping..."
+                )
+                continue
+
+            image_name = f"{frame_count}.png"
+            output_path = os.path.join(output_path, image_name)
+            cv2.imwrite(output_path, side_by_side)
+            frame_count += 1
+
 
 if __name__ == "__main__":
     left_folder = "/media/devansh/T7 Shield/wildfire_thermal/2.images/thermal_2023-11-07-throughTrees_trial2/images_raw/thermal_left"
@@ -142,4 +174,5 @@ if __name__ == "__main__":
     tolerance = 1000  # ms
 
     image_sync = ImageSync(left_folder, right_folder, output_video, tolerance)
-    image_sync.create_video()
+    # image_sync.create_video()
+    image_sync.create_images()
