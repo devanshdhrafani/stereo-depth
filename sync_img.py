@@ -165,14 +165,14 @@ class ImageSync:
                 continue
 
             image_name = f"{frame_count}.png"
-            output_path = os.path.join(output_path, image_name)
-            cv2.imwrite(output_path, side_by_side)
+            image_path = os.path.join(output_path, image_name)
+            cv2.imwrite(image_path, side_by_side)
             frame_count += 1
 
 
 if __name__ == "__main__":
-    left_folder = "/media/devansh/T7 Shield/wildfire_thermal/2.images/thermal_2023-11-07-throughTrees_trial2/images_raw/thermal_left"
-    right_folder = "/media/devansh/T7 Shield/wildfire_thermal/2.images/thermal_2023-11-07-throughTrees_trial2/images_raw/thermal_right"
+    left_folder = "/media/devansh/T7 Shield/wildfire_thermal/2.images/gascola_1/images_raw/thermal_left"
+    right_folder = "/media/devansh/T7 Shield/wildfire_thermal/2.images/gascola_1/images_raw/thermal_right"
     output_video = "/media/devansh/T7 Shield/wildfire_thermal/3.synced_videos/2023-11-07-throughTrees_trial2_histogram.avi"
     tolerance = 1000  # ms
 
