@@ -26,6 +26,9 @@ class ImageSync:
         left_images = sorted(os.listdir(self.left_folder))
         right_images = sorted(os.listdir(self.right_folder))
 
+        print(f"Found {len(left_images)} left images")
+        print(f"Found {len(right_images)} right images")
+
         left_timestamps = self.names_to_timestamp(left_images)
         right_timestamps = self.names_to_timestamp(right_images)
 
