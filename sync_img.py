@@ -2,6 +2,7 @@ import os
 import cv2
 import numpy as np
 import tqdm
+from rectify_image import RectifyImage
 
 
 class ImageSync:
@@ -10,6 +11,7 @@ class ImageSync:
         self.right_folder = right_folder
         self.output_video = output_video
         self.tolerance = tolerance
+        self.rectify = RectifyImage("./thermal_left.yaml", "./thermal_right.yaml")
 
     def names_to_timestamp(self, names):
         timestamps = []
@@ -142,7 +144,9 @@ class ImageSync:
         print(f"Found {len(synced_images)} synced images")
 
         # move two up from the left folder and create a new folder called images_raw_synced
-        output_path = os.path.join(self.left_folder, "../../images_raw_synced")
+        output_path = os.path.join(
+            self.left_folder, "../../images_rectified_minmax_synced"
+        )
         if not os.path.exists(output_path):
             os.makedirs(output_path)
         print(f"Saving images to: {output_path}")
@@ -155,6 +159,8 @@ class ImageSync:
             right_path = os.path.join(self.right_folder, right_image)
             left_image = cv2.imread(left_path, cv2.IMREAD_UNCHANGED)
             right_image = cv2.imread(right_path, cv2.IMREAD_UNCHANGED)
+
+            left_image, right_image, *_ = self.rectify(left_image, right_image)
 
             try:
                 side_by_side = cv2.hconcat([left_image, right_image])
