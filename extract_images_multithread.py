@@ -71,13 +71,13 @@ class ROSBagImageExtractor:
 
 if __name__ == "__main__":
     bag_file = (
-        "/media/devansh/T7 Shield/wildfire_thermal/1.bags/fire_sgl_228/flight_1.bag"
+        "/media/devansh/T7 Shield/wildfire_thermal/1.bags/fire_sgl_228/flight_2.bag"
     )
     output_dir = (
-        "/media/devansh/T7 Shield/wildfire_thermal/2.images/fire_sgl_1/images_raw"
+        "/media/devansh/T7 Shield/wildfire_thermal/2.images/fire_sgl_2/images_raw"
     )
 
     image_extractor = ROSBagImageExtractor(bag_file, output_dir, raw=True)
     image_extractor.create_output_directory()
     image_extractor.create_metadata()
-    image_extractor.extract_images()
+    image_extractor.extract_images(multi_thread=False)
