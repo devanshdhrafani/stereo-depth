@@ -139,17 +139,33 @@ class ImageSync:
 
         video_writer.release()
 
-    def create_images(self):
+    def save_metadata(self, filename, path):
+        image_stamp = int(path.split("/")[-1].split(".")[0])
+        with open(filename, "a") as f:
+            f.write(f"{image_stamp}\n")
+
+    def create_images(self, folder_name, start=None, end=None):
         synced_images = self.sync_images()
         print(f"Found {len(synced_images)} synced images")
 
         # move two up from the left folder and create a new folder called images_raw_synced
-        output_path = os.path.join(
-            self.left_folder, "../../images_rectified_minmax_synced"
-        )
+        output_path = os.path.join(self.left_folder, "../..", folder_name)
         if not os.path.exists(output_path):
             os.makedirs(output_path)
+            os.makedirs(os.path.join(output_path, "img_left"))
+            os.makedirs(os.path.join(output_path, "img_right"))
         print(f"Saving images to: {output_path}")
+
+        # timestamps file
+        with open(os.path.join(output_path, "timestamps.txt"), "w") as f:
+            f.write("")
+
+        if start is not None or end is not None:
+            synced_images = [
+                (left, right)
+                for left, right in synced_images
+                if int(left.split(".")[0]) >= start and int(left.split(".")[0]) <= end
+            ]
 
         frame_count = 0
         for left_image, right_image in tqdm.tqdm(
@@ -162,26 +178,19 @@ class ImageSync:
 
             left_image, right_image, *_ = self.rectify(left_image, right_image)
 
-            try:
-                side_by_side = cv2.hconcat([left_image, right_image])
-            except Exception as e:
-                print(
-                    f"Encountered error: {e} at {left_image} and {right_image}. Skipping..."
-                )
-                continue
-
-            image_name = f"{frame_count}.png"
-            image_path = os.path.join(output_path, image_name)
-            cv2.imwrite(image_path, side_by_side)
+            image_name = f"{frame_count:05d}.png"
+            cv2.imwrite(os.path.join(output_path, "img_left", image_name), left_image)
+            cv2.imwrite(os.path.join(output_path, "img_right", image_name), right_image)
+            self.save_metadata(os.path.join(output_path, "timestamps.txt"), left_path)
             frame_count += 1
 
 
 if __name__ == "__main__":
-    left_folder = "/media/devansh/T7 Shield/wildfire_thermal/2.images/gascola_1/images_raw/thermal_left"
-    right_folder = "/media/devansh/T7 Shield/wildfire_thermal/2.images/gascola_1/images_raw/thermal_right"
+    left_folder = "/media/devansh/t7shield/wildfire_thermal/2.images/frick_2/images_raw/thermal_left"
+    right_folder = "/media/devansh/t7shield/wildfire_thermal/2.images/frick_2/images_raw/thermal_right"
     output_video = "/media/devansh/T7 Shield/wildfire_thermal/3.synced_videos/2023-11-07-throughTrees_trial2_histogram.avi"
-    tolerance = 1000  # ms
+    tolerance = 250  # ms
 
     image_sync = ImageSync(left_folder, right_folder, output_video, tolerance)
     # image_sync.create_video()
-    image_sync.create_images()
+    image_sync.create_images(folder_name="images_synced")
